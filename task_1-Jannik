@@ -1,0 +1,580 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "Kopie von task1.ipynb",
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/lblum95/AML/blob/master/task_1-Jannik\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "gbXB74Yo46P1"
+      },
+      "source": [
+        "# AML first project"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "uo_5XT094_rK"
+      },
+      "source": [
+        "## Data ingestion"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "nPW_K3biymfg"
+      },
+      "source": [
+        "### Connect to drive"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "QHFWrWVCdcUO",
+        "outputId": "2db5f1e9-728a-4a54-bcd4-0ce5fed37286",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 35
+        }
+      },
+      "source": [
+        "from google.colab import drive\n",
+        "drive.mount('/content/drive')\n",
+        "import os\n",
+        "os.chdir('/content/drive/My Drive')"
+      ],
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Mounted at /content/drive\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "87COONMgy0C-"
+      },
+      "source": [
+        "### Import all data libraries"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "hmTNR51VyuFw",
+        "outputId": "6bc2216e-2623-42a0-f6f4-3921e78709dc",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 1000
+        }
+      },
+      "source": [
+        "!pip install pandas_profiling -U\n",
+        "import pandas as pd\n",
+        "from pandas_profiling import ProfileReport\n",
+        "import numpy as np"
+      ],
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Collecting pandas_profiling\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/32/79/5d03ed1172e3e67a997a6a795bcdd2ab58f84851969d01a91455383795b6/pandas_profiling-2.9.0-py2.py3-none-any.whl (258kB)\n",
+            "\u001b[K     |████████████████████████████████| 266kB 1.8MB/s \n",
+            "\u001b[?25hCollecting phik>=0.9.10\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/01/5a/7ef1c04ce62cd72f900c06298dc2385840550d5c653a0dbc19109a5477e6/phik-0.10.0-py3-none-any.whl (599kB)\n",
+            "\u001b[K     |████████████████████████████████| 604kB 5.0MB/s \n",
+            "\u001b[?25hRequirement already satisfied, skipping upgrade: missingno>=0.4.2 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (0.4.2)\n",
+            "Requirement already satisfied, skipping upgrade: requests>=2.23.0 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (2.23.0)\n",
+            "Requirement already satisfied, skipping upgrade: ipywidgets>=7.5.1 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (7.5.1)\n",
+            "Collecting tangled-up-in-unicode>=0.0.6\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/4a/e2/e588ab9298d4989ce7fdb2b97d18aac878d99dbdc379a4476a09d9271b68/tangled_up_in_unicode-0.0.6-py3-none-any.whl (3.1MB)\n",
+            "\u001b[K     |████████████████████████████████| 3.1MB 8.6MB/s \n",
+            "\u001b[?25hRequirement already satisfied, skipping upgrade: joblib in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (0.16.0)\n",
+            "Requirement already satisfied, skipping upgrade: numpy>=1.16.0 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (1.18.5)\n",
+            "Requirement already satisfied, skipping upgrade: matplotlib>=3.2.0 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (3.2.2)\n",
+            "Requirement already satisfied, skipping upgrade: scipy>=1.4.1 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (1.4.1)\n",
+            "Collecting tqdm>=4.43.0\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/bd/cf/f91813073e4135c1183cadf968256764a6fe4e35c351d596d527c0540461/tqdm-4.50.2-py2.py3-none-any.whl (70kB)\n",
+            "\u001b[K     |████████████████████████████████| 71kB 7.3MB/s \n",
+            "\u001b[?25hRequirement already satisfied, skipping upgrade: seaborn>=0.10.1 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (0.11.0)\n",
+            "Requirement already satisfied, skipping upgrade: attrs>=19.3.0 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (20.2.0)\n",
+            "Collecting visions[type_image_path]==0.5.0\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/26/e3/9416e94e767d59a86edcbcb8e1c8f42874d272c3b343676074879e9db0e0/visions-0.5.0-py3-none-any.whl (64kB)\n",
+            "\u001b[K     |████████████████████████████████| 71kB 7.7MB/s \n",
+            "\u001b[?25hRequirement already satisfied, skipping upgrade: jinja2>=2.11.1 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (2.11.2)\n",
+            "Collecting htmlmin>=0.1.12\n",
+            "  Downloading https://files.pythonhosted.org/packages/b3/e7/fcd59e12169de19f0131ff2812077f964c6b960e7c09804d30a7bf2ab461/htmlmin-0.1.12.tar.gz\n",
+            "Collecting confuse>=1.0.0\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/b5/6d/bedc0d1068bd244cee05843313cbec6cebb9f01f925538269bababc6d887/confuse-1.3.0-py2.py3-none-any.whl (64kB)\n",
+            "\u001b[K     |████████████████████████████████| 71kB 7.8MB/s \n",
+            "\u001b[?25hRequirement already satisfied, skipping upgrade: pandas!=1.0.0,!=1.0.1,!=1.0.2,!=1.1.0,>=0.25.3 in /usr/local/lib/python3.6/dist-packages (from pandas_profiling) (1.1.2)\n",
+            "Requirement already satisfied, skipping upgrade: numba>=0.38.1 in /usr/local/lib/python3.6/dist-packages (from phik>=0.9.10->pandas_profiling) (0.48.0)\n",
+            "Requirement already satisfied, skipping upgrade: chardet<4,>=3.0.2 in /usr/local/lib/python3.6/dist-packages (from requests>=2.23.0->pandas_profiling) (3.0.4)\n",
+            "Requirement already satisfied, skipping upgrade: urllib3!=1.25.0,!=1.25.1,<1.26,>=1.21.1 in /usr/local/lib/python3.6/dist-packages (from requests>=2.23.0->pandas_profiling) (1.24.3)\n",
+            "Requirement already satisfied, skipping upgrade: certifi>=2017.4.17 in /usr/local/lib/python3.6/dist-packages (from requests>=2.23.0->pandas_profiling) (2020.6.20)\n",
+            "Requirement already satisfied, skipping upgrade: idna<3,>=2.5 in /usr/local/lib/python3.6/dist-packages (from requests>=2.23.0->pandas_profiling) (2.10)\n",
+            "Requirement already satisfied, skipping upgrade: traitlets>=4.3.1 in /usr/local/lib/python3.6/dist-packages (from ipywidgets>=7.5.1->pandas_profiling) (4.3.3)\n",
+            "Requirement already satisfied, skipping upgrade: ipython>=4.0.0; python_version >= \"3.3\" in /usr/local/lib/python3.6/dist-packages (from ipywidgets>=7.5.1->pandas_profiling) (5.5.0)\n",
+            "Requirement already satisfied, skipping upgrade: nbformat>=4.2.0 in /usr/local/lib/python3.6/dist-packages (from ipywidgets>=7.5.1->pandas_profiling) (5.0.7)\n",
+            "Requirement already satisfied, skipping upgrade: widgetsnbextension~=3.5.0 in /usr/local/lib/python3.6/dist-packages (from ipywidgets>=7.5.1->pandas_profiling) (3.5.1)\n",
+            "Requirement already satisfied, skipping upgrade: ipykernel>=4.5.1 in /usr/local/lib/python3.6/dist-packages (from ipywidgets>=7.5.1->pandas_profiling) (4.10.1)\n",
+            "Requirement already satisfied, skipping upgrade: cycler>=0.10 in /usr/local/lib/python3.6/dist-packages (from matplotlib>=3.2.0->pandas_profiling) (0.10.0)\n",
+            "Requirement already satisfied, skipping upgrade: pyparsing!=2.0.4,!=2.1.2,!=2.1.6,>=2.0.1 in /usr/local/lib/python3.6/dist-packages (from matplotlib>=3.2.0->pandas_profiling) (2.4.7)\n",
+            "Requirement already satisfied, skipping upgrade: python-dateutil>=2.1 in /usr/local/lib/python3.6/dist-packages (from matplotlib>=3.2.0->pandas_profiling) (2.8.1)\n",
+            "Requirement already satisfied, skipping upgrade: kiwisolver>=1.0.1 in /usr/local/lib/python3.6/dist-packages (from matplotlib>=3.2.0->pandas_profiling) (1.2.0)\n",
+            "Requirement already satisfied, skipping upgrade: networkx>=2.4 in /usr/local/lib/python3.6/dist-packages (from visions[type_image_path]==0.5.0->pandas_profiling) (2.5)\n",
+            "Requirement already satisfied, skipping upgrade: Pillow; extra == \"type_image_path\" in /usr/local/lib/python3.6/dist-packages (from visions[type_image_path]==0.5.0->pandas_profiling) (7.0.0)\n",
+            "Collecting imagehash; extra == \"type_image_path\"\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/1a/5d/cc81830be3c4705a46cdbca74439b67f1017881383ba0127c41c4cecb7b3/ImageHash-4.1.0.tar.gz (291kB)\n",
+            "\u001b[K     |████████████████████████████████| 296kB 19.9MB/s \n",
+            "\u001b[?25hRequirement already satisfied, skipping upgrade: MarkupSafe>=0.23 in /usr/local/lib/python3.6/dist-packages (from jinja2>=2.11.1->pandas_profiling) (1.1.1)\n",
+            "Requirement already satisfied, skipping upgrade: pyyaml in /usr/local/lib/python3.6/dist-packages (from confuse>=1.0.0->pandas_profiling) (3.13)\n",
+            "Requirement already satisfied, skipping upgrade: pytz>=2017.2 in /usr/local/lib/python3.6/dist-packages (from pandas!=1.0.0,!=1.0.1,!=1.0.2,!=1.1.0,>=0.25.3->pandas_profiling) (2018.9)\n",
+            "Requirement already satisfied, skipping upgrade: setuptools in /usr/local/lib/python3.6/dist-packages (from numba>=0.38.1->phik>=0.9.10->pandas_profiling) (50.3.0)\n",
+            "Requirement already satisfied, skipping upgrade: llvmlite<0.32.0,>=0.31.0dev0 in /usr/local/lib/python3.6/dist-packages (from numba>=0.38.1->phik>=0.9.10->pandas_profiling) (0.31.0)\n",
+            "Requirement already satisfied, skipping upgrade: six in /usr/local/lib/python3.6/dist-packages (from traitlets>=4.3.1->ipywidgets>=7.5.1->pandas_profiling) (1.15.0)\n",
+            "Requirement already satisfied, skipping upgrade: ipython-genutils in /usr/local/lib/python3.6/dist-packages (from traitlets>=4.3.1->ipywidgets>=7.5.1->pandas_profiling) (0.2.0)\n",
+            "Requirement already satisfied, skipping upgrade: decorator in /usr/local/lib/python3.6/dist-packages (from traitlets>=4.3.1->ipywidgets>=7.5.1->pandas_profiling) (4.4.2)\n",
+            "Requirement already satisfied, skipping upgrade: pygments in /usr/local/lib/python3.6/dist-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets>=7.5.1->pandas_profiling) (2.6.1)\n",
+            "Requirement already satisfied, skipping upgrade: pexpect; sys_platform != \"win32\" in /usr/local/lib/python3.6/dist-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets>=7.5.1->pandas_profiling) (4.8.0)\n",
+            "Requirement already satisfied, skipping upgrade: prompt-toolkit<2.0.0,>=1.0.4 in /usr/local/lib/python3.6/dist-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets>=7.5.1->pandas_profiling) (1.0.18)\n",
+            "Requirement already satisfied, skipping upgrade: simplegeneric>0.8 in /usr/local/lib/python3.6/dist-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets>=7.5.1->pandas_profiling) (0.8.1)\n",
+            "Requirement already satisfied, skipping upgrade: pickleshare in /usr/local/lib/python3.6/dist-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets>=7.5.1->pandas_profiling) (0.7.5)\n",
+            "Requirement already satisfied, skipping upgrade: jsonschema!=2.5.0,>=2.4 in /usr/local/lib/python3.6/dist-packages (from nbformat>=4.2.0->ipywidgets>=7.5.1->pandas_profiling) (2.6.0)\n",
+            "Requirement already satisfied, skipping upgrade: jupyter-core in /usr/local/lib/python3.6/dist-packages (from nbformat>=4.2.0->ipywidgets>=7.5.1->pandas_profiling) (4.6.3)\n",
+            "Requirement already satisfied, skipping upgrade: notebook>=4.4.1 in /usr/local/lib/python3.6/dist-packages (from widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (5.3.1)\n",
+            "Requirement already satisfied, skipping upgrade: jupyter-client in /usr/local/lib/python3.6/dist-packages (from ipykernel>=4.5.1->ipywidgets>=7.5.1->pandas_profiling) (5.3.5)\n",
+            "Requirement already satisfied, skipping upgrade: tornado>=4.0 in /usr/local/lib/python3.6/dist-packages (from ipykernel>=4.5.1->ipywidgets>=7.5.1->pandas_profiling) (5.1.1)\n",
+            "Requirement already satisfied, skipping upgrade: PyWavelets in /usr/local/lib/python3.6/dist-packages (from imagehash; extra == \"type_image_path\"->visions[type_image_path]==0.5.0->pandas_profiling) (1.1.1)\n",
+            "Requirement already satisfied, skipping upgrade: ptyprocess>=0.5 in /usr/local/lib/python3.6/dist-packages (from pexpect; sys_platform != \"win32\"->ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets>=7.5.1->pandas_profiling) (0.6.0)\n",
+            "Requirement already satisfied, skipping upgrade: wcwidth in /usr/local/lib/python3.6/dist-packages (from prompt-toolkit<2.0.0,>=1.0.4->ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets>=7.5.1->pandas_profiling) (0.2.5)\n",
+            "Requirement already satisfied, skipping upgrade: Send2Trash in /usr/local/lib/python3.6/dist-packages (from notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (1.5.0)\n",
+            "Requirement already satisfied, skipping upgrade: terminado>=0.8.1 in /usr/local/lib/python3.6/dist-packages (from notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (0.9.1)\n",
+            "Requirement already satisfied, skipping upgrade: nbconvert in /usr/local/lib/python3.6/dist-packages (from notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (5.6.1)\n",
+            "Requirement already satisfied, skipping upgrade: pyzmq>=13 in /usr/local/lib/python3.6/dist-packages (from jupyter-client->ipykernel>=4.5.1->ipywidgets>=7.5.1->pandas_profiling) (19.0.2)\n",
+            "Requirement already satisfied, skipping upgrade: bleach in /usr/local/lib/python3.6/dist-packages (from nbconvert->notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (3.2.1)\n",
+            "Requirement already satisfied, skipping upgrade: pandocfilters>=1.4.1 in /usr/local/lib/python3.6/dist-packages (from nbconvert->notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (1.4.2)\n",
+            "Requirement already satisfied, skipping upgrade: mistune<2,>=0.8.1 in /usr/local/lib/python3.6/dist-packages (from nbconvert->notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (0.8.4)\n",
+            "Requirement already satisfied, skipping upgrade: entrypoints>=0.2.2 in /usr/local/lib/python3.6/dist-packages (from nbconvert->notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (0.3)\n",
+            "Requirement already satisfied, skipping upgrade: testpath in /usr/local/lib/python3.6/dist-packages (from nbconvert->notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (0.4.4)\n",
+            "Requirement already satisfied, skipping upgrade: defusedxml in /usr/local/lib/python3.6/dist-packages (from nbconvert->notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (0.6.0)\n",
+            "Requirement already satisfied, skipping upgrade: packaging in /usr/local/lib/python3.6/dist-packages (from bleach->nbconvert->notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (20.4)\n",
+            "Requirement already satisfied, skipping upgrade: webencodings in /usr/local/lib/python3.6/dist-packages (from bleach->nbconvert->notebook>=4.4.1->widgetsnbextension~=3.5.0->ipywidgets>=7.5.1->pandas_profiling) (0.5.1)\n",
+            "Building wheels for collected packages: htmlmin, imagehash\n",
+            "  Building wheel for htmlmin (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for htmlmin: filename=htmlmin-0.1.12-cp36-none-any.whl size=27085 sha256=84dde8b361c061bcec26d434efc67f4a813878384785003ef89fa1201c9c8036\n",
+            "  Stored in directory: /root/.cache/pip/wheels/43/07/ac/7c5a9d708d65247ac1f94066cf1db075540b85716c30255459\n",
+            "  Building wheel for imagehash (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for imagehash: filename=ImageHash-4.1.0-py2.py3-none-any.whl size=291991 sha256=df1a0e7ab3328cec4ba5a7d58ff0b3f137bdcecff3c06bcaa4fb61409c0dd1b8\n",
+            "  Stored in directory: /root/.cache/pip/wheels/07/1c/dc/6831446f09feb8cc199ec73a0f2f0703253f6ae013a22f4be9\n",
+            "Successfully built htmlmin imagehash\n",
+            "Installing collected packages: phik, tangled-up-in-unicode, tqdm, imagehash, visions, htmlmin, confuse, pandas-profiling\n",
+            "  Found existing installation: tqdm 4.41.1\n",
+            "    Uninstalling tqdm-4.41.1:\n",
+            "      Successfully uninstalled tqdm-4.41.1\n",
+            "  Found existing installation: pandas-profiling 1.4.1\n",
+            "    Uninstalling pandas-profiling-1.4.1:\n",
+            "      Successfully uninstalled pandas-profiling-1.4.1\n",
+            "Successfully installed confuse-1.3.0 htmlmin-0.1.12 imagehash-4.1.0 pandas-profiling-2.9.0 phik-0.10.0 tangled-up-in-unicode-0.0.6 tqdm-4.50.2 visions-0.5.0\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "NKl0bivD2hb-"
+      },
+      "source": [
+        "### Import data"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "auO5NH0VzvUO"
+      },
+      "source": [
+        "x_train = pd.read_csv(\"data/X_train.csv\",index_col=0,header = 0)\n",
+        "y_train = pd.read_csv(\"data/y_train.csv\",index_col=0,header = 0)\n",
+        "x_test = pd.read_csv(\"data/X_test.csv\",index_col=0,header = 0)"
+      ],
+      "execution_count": 3,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "VdQBM84p4suD"
+      },
+      "source": [
+        "### Data cleaning\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Ng7riTBmL1yk"
+      },
+      "source": [
+        "Outlier clipping\n",
+        "\n",
+        "quantile ignores nans :)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ESNfLtNT4rto",
+        "outputId": "378c7a16-a22c-473f-a16d-f5eef0afa18c",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 90
+        }
+      },
+      "source": [
+        "percentile=0.05\n",
+        "#quantile ignores nans :)\n",
+        "print(x_train.shape)\n",
+        "lower=x_train.quantile(percentile, axis=0, interpolation='lower')\n",
+        "higher=x_train.quantile(1-percentile, axis=0, interpolation='higher')\n",
+        "print(lower.shape)\n",
+        "print(higher.shape)\n",
+        "train=x_train.clip(lower,higher,axis=1)\n",
+        "print(train.shape)"
+      ],
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "(1212, 832)\n",
+            "(832,)\n",
+            "(832,)\n",
+            "(1212, 832)\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "KoXtlzVwL76k"
+      },
+      "source": [
+        "\n",
+        "\n",
+        "Fill mean in NaNs"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "QJWOJ9eY7-db"
+      },
+      "source": [
+        "#fill NaNs with mean\n",
+        "train=train.apply(lambda x: x.fillna(x.mean()),axis=0)"
+      ],
+      "execution_count": 5,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Ws3tOQqS7Zyj"
+      },
+      "source": [
+        "Normalize data"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "tjNqb3oV7bfn",
+        "outputId": "677eb2ce-7de4-4225-c2eb-13fc71f84179",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 256
+        }
+      },
+      "source": [
+        "from sklearn import preprocessing\n",
+        "scaler = preprocessing.StandardScaler().fit(train)\n",
+        "test=scaler.transform(train)\n",
+        "test"
+      ],
+      "execution_count": 7,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "array([[ 1.03395957e+00, -1.72388823e+00,  6.95963777e-01, ...,\n",
+              "        -5.24358916e-01, -1.71844251e+00, -7.03238121e-01],\n",
+              "       [ 1.77519194e+00,  1.45780409e+00,  3.96418573e-10, ...,\n",
+              "        -1.62112772e+00, -4.88124515e-01,  9.97882048e-02],\n",
+              "       [ 1.22526942e+00,  1.39000401e+00, -4.38707639e-01, ...,\n",
+              "        -1.13899489e+00, -1.83947835e+00, -2.81512241e-01],\n",
+              "       ...,\n",
+              "       [-9.04759519e-01, -1.63401639e+00,  3.23005914e-02, ...,\n",
+              "        -1.59444405e+00,  1.81870577e+00,  1.30501687e-01],\n",
+              "       [-1.05993919e-14, -1.22064009e+00,  1.42144559e+00, ...,\n",
+              "        -8.71659095e-02,  5.86512874e-01, -1.68631832e+00],\n",
+              "       [-1.13927439e+00, -6.58484639e-01,  2.53751452e-01, ...,\n",
+              "        -7.64400524e-01, -1.72872580e-14, -1.76454689e-01]])"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 7
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "H5SCbGMPuGyc"
+      },
+      "source": [
+        "## Feature selection"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "eUk5aTqxuMaV"
+      },
+      "source": [
+        "### import all libraries"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mUKU7jsojwwk"
+      },
+      "source": [
+        "from sklearn.feature_selection import VarianceThreshold\n",
+        "from sklearn.feature_selection import SelectKBest, f_regression\n",
+        "from sklearn.feature_selection import RFECV\n",
+        "from sklearn.svm import SVR\n",
+        "from sklearn.metrics import r2_score\n",
+        "from sklearn.model_selection import train_test_split"
+      ],
+      "execution_count": 8,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Mce_KpksxmUg"
+      },
+      "source": [
+        "### Fiddle down to 200 features"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mpiRd9QKwyy9",
+        "outputId": "24149686-26f0-4401-deb2-c80d9111b6bb",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 239
+        }
+      },
+      "source": [
+        "kbest=SelectKBest(f_regression, k=200)\n",
+        "train = kbest.fit_transform(test, y_train)\n",
+        "print(train.shape)"
+      ],
+      "execution_count": 10,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "(1212, 200)\n"
+          ],
+          "name": "stdout"
+        },
+        {
+          "output_type": "stream",
+          "text": [
+            "/usr/local/lib/python3.6/dist-packages/sklearn/utils/validation.py:760: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().\n",
+            "  y = column_or_1d(y, warn=True)\n",
+            "/usr/local/lib/python3.6/dist-packages/sklearn/feature_selection/_univariate_selection.py:299: RuntimeWarning: invalid value encountered in true_divide\n",
+            "  corr /= X_norms\n",
+            "/usr/local/lib/python3.6/dist-packages/scipy/stats/_distn_infrastructure.py:903: RuntimeWarning: invalid value encountered in greater\n",
+            "  return (a < x) & (x < b)\n",
+            "/usr/local/lib/python3.6/dist-packages/scipy/stats/_distn_infrastructure.py:903: RuntimeWarning: invalid value encountered in less\n",
+            "  return (a < x) & (x < b)\n",
+            "/usr/local/lib/python3.6/dist-packages/scipy/stats/_distn_infrastructure.py:1912: RuntimeWarning: invalid value encountered in less_equal\n",
+            "  cond2 = cond0 & (x <= _a)\n"
+          ],
+          "name": "stderr"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "acXMjGzX2Hcy"
+      },
+      "source": [
+        "### RFECV with linear SVR "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "KB5RrBgIx69p",
+        "outputId": "92056d46-2252-4dcc-db94-dad57a19619c",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 92
+        }
+      },
+      "source": [
+        "linear = SVR(kernel=\"linear\")\n",
+        "rfe_linear = RFECV(linear, step=5, cv=5)\n",
+        "train_linear = rfe_linear.fit_transform(train, y_train)\n",
+        "print(train_linear.shape)"
+      ],
+      "execution_count": 11,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "/usr/local/lib/python3.6/dist-packages/sklearn/utils/validation.py:760: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().\n",
+            "  y = column_or_1d(y, warn=True)\n"
+          ],
+          "name": "stderr"
+        },
+        {
+          "output_type": "stream",
+          "text": [
+            "(1212, 40)\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "sC_BBszx1tOD"
+      },
+      "source": [
+        "Test SVR"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "lO4iXgyu09d0",
+        "outputId": "6af3da67-944c-40d5-ef09-aeb4d1e8add2",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 266
+        }
+      },
+      "source": [
+        "train_x, val_x, train_y, val_y = train_test_split(train_linear, y_train, test_size=0.2, random_state=36)\n",
+        "linear = SVR(kernel=\"linear\")\n",
+        "clf = linear.fit(train_x, train_y)\n",
+        "print(clf.score(val_x, val_y)) #already correct r2 metric :)"
+      ],
+      "execution_count": 12,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "/usr/local/lib/python3.6/dist-packages/sklearn/utils/validation.py:760: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().\n",
+            "  y = column_or_1d(y, warn=True)\n"
+          ],
+          "name": "stderr"
+        },
+        {
+          "output_type": "error",
+          "ename": "NameError",
+          "evalue": "ignored",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mNameError\u001b[0m                                 Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-12-fbc35edacccb>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0mlinear\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mSVR\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mkernel\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m\"linear\"\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0mclf\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mlinear\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mfit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtrain_x\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtrain_y\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 4\u001b[0;31m \u001b[0mprint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mclf\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mscore\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtest_x\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtest_y\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;31m#already correct r2 metric :)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+            "\u001b[0;31mNameError\u001b[0m: name 'test_x' is not defined"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "pPTxZCkb9nk_",
+        "outputId": "a306838d-582b-4346-f214-640198335b94",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 35
+        }
+      },
+      "source": [
+        "print(clf.score(val_x, val_y)) #already correct r2 metric :)"
+      ],
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "0.5074965285156073\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "fj6EYMv216xS"
+      },
+      "source": [
+        "from IPython.display import display, Markdown"
+      ],
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
