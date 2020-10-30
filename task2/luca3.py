@@ -54,7 +54,7 @@ import pprint as pp
 pp.pprint(sorted(pipeline.get_params().keys()))
 
 search = GridSearchCV(pipeline, param_grid,scoring='balanced_accuracy', cv=cv, n_jobs=-1)
-search.fit(x_train, y_train)
+search.fit(x_train, y_train.values.ravel())
 
 print("Best parameter (CV score=%0.3f):" % search.best_score_)
 print(search.best_params_)
