@@ -12,7 +12,9 @@ from imblearn.pipeline import Pipeline
 import numpy as np
 
 """
-Euler: bsub -n 24 -W 72:00 -N -J "task-2" -oo data/output.txt python3 luca3.py
+EULER
+	module load new gcc/4.8.2 python/3.6.1
+	bsub -n 24 -W 72:00 -N -J "task-2" -oo data/output.txt python3 luca3.py
 """
 
 # Read in data for training and testing
@@ -56,12 +58,13 @@ feature_sel = KernelPCA(kernel='rbf', random_state=42)
 model = StackingClassifier(estimators=estimators, final_estimator=SVC(random_state=42))
 
 # Parameter space for CV
+
 param_grid = {
-    'feature__n_components': np.linspace(start=100, stop=600, num=2),
-    'classification__svc_sig__C': [1],
-    'classification__svc_rbf__C': [1],
-    'classification__svc_poly__C': [1],
-    'classification__final_estimator__C': [1]
+    'feature__n_components': np.linspace(start=100, stop=600, num=6),
+    'classification__svc_sig__C': [0.1, 1.0, 10],
+    'classification__svc_rbf__C': [0.1, 1.0, 10],
+    'classification__svc_poly__C': [0.1, 1.0, 10],
+    'classification__final_estimator__C': [0.1, 1.0, 10]
 }
 
 # model to train
