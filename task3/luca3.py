@@ -1,6 +1,7 @@
 import neurokit2 as nk
 import numpy as np
 import pandas as pd
+from biosppy.signals import ecg
 
 SAMPLING_RATE = 300.0
 
@@ -38,6 +39,13 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     
     Also the output from nk.hrv_time which contains different measurements for the heart rate variation (HRV*) was added
     
+    Additionally one 'typical' heartbeat was greated (all length 180):
+    
+    MN_*            mean signal
+    MD_*            median signal
+    P5_*            5 % percentile signal
+    P95_*           95 % percentile signal
+    SD_*            standard deviation of signal
     """
 
     names = ['R_ampl_mean', 'R_ampl_median', 'R_ampl_perc5', 'R_ampl_perc95', 'R_ampl_sd', 'R_nr_peaks',
@@ -50,6 +58,16 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
              'QRS_diff_mean', 'QRS_diff_median', 'QRS_diff_perc5', 'QRS_diff_perc95', 'QRS_diff_sd',
              'HRV_RMSSD', 'HRV_MeanNN', 'HRV_SDNN', 'HRV_SDSD', 'HRV_CVNN', 'HRV_CVSD', 'HRV_MedianNN',
              'HRV_MadNN', 'HRV_MCVNN', 'HRV_IQRNN', 'HRV_pNN50', 'HRV_pNN20', 'HRV_TINN', 'HRV_HTI']
+
+    mean_names = ['MN_' + str(index) for index in range(180)]
+    median_names = ['MD_' + str(index) for index in range(180)]
+    perc5_names = ['P5_' + str(index) for index in range(180)]
+    perc95_names = ['P95_' + str(index) for index in range(180)]
+    sd_names = ['SD_' + str(index) for index in range(180)]
+
+    typical_signal_names =  mean_names + median_names + perc5_names + perc95_names + sd_names
+
+    names += typical_signal_names
 
     data = np.empty([dataframe.shape[0], len(names)])
 
@@ -219,7 +237,7 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
 
         # if we don't have enough R peaks return vector of nan's
         else:
-            empty = np.empty([len(names) - 25])
+            empty = np.empty([len(names) - 25 - len(typical_signal_names)])
             empty[:] = np.NaN
             data_temp += empty.tolist()
 
@@ -230,6 +248,20 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
         hrv_time = nk.hrv_time(peaks, sampling_rate=SAMPLING_RATE, show=False)
 
         data_new = hrv_time.values.tolist()[0]
+
+        data_temp += data_new
+
+        # Create a 'typical' heartbeat
+
+        out = ecg.ecg(signal=ecg_signal, sampling_rate=SAMPLING_RATE, show=False)
+
+        mean = np.mean(out['templates'], axis=0)
+        median = np.median(out['templates'], axis=0)
+        perc5 = np.percentile(out['templates'].astype(np.float64), axis=0, q=5)
+        perc95 = np.percentile(out['templates'].astype(np.float64), axis=0, q=95)
+        std = np.std(out['templates'].astype(np.float64), axis=0)
+
+        data_new = np.concatenate((mean, median, perc5, perc95, std)).tolist()
 
         data_temp += data_new
 
@@ -251,7 +283,7 @@ x_test = pd.read_csv("data/X_test.csv", index_col=0, header=0, low_memory=False,
 
 #Feature extraction
 x_train_features = create_df(x_train)
-x_train_features.to_csv('data/x_train_features.csv')
+x_train_features.to_csv('data/X_train_features.csv')
 
 x_test_features = create_df(x_test)
-x_test_features.to_csv('data/x_test_features.csv')
+x_test_features.to_csv('data/X_test_features.csv')
