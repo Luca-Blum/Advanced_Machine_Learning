@@ -1,11 +1,10 @@
-# Load NeuroKit and other useful packages
-import matplotlib
+
 import neurokit2 as nk
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-from jedi.api.refactoring import inline
+from biosppy.signals import ecg
+
 
 
 # Read in data for training and testing
@@ -116,4 +115,31 @@ print(hrv_non)
 hrv_indices = nk.hrv(peaks, sampling_rate=300, show=True)
 print(hrv_indices)
 
+# create mean, median, perc5, perc95 and std signal with same length
+
+x_plots = 4
+y_plots = 4
+# process it and plot
+fig, axs = plt.subplots(x_plots, y_plots)
+
+for i in range(y_plots):
+    for j in range(x_plots):
+        out = ecg.ecg(signal=x_train.loc[i * y_plots + j][:lengths[i * y_plots + j] + 1], sampling_rate=300., show=False)
+        print(out['templates'].shape)
+
+        mean = np.mean(out['templates'], axis=0)
+        median = np.median(out['templates'], axis=0)
+        perc5 = np.percentile(out['templates'].astype(np.float64), axis=0, q=5)
+        perc95 = np.percentile(out['templates'].astype(np.float64), axis=0, q=95)
+        std = np.std(out['templates'].astype(np.float64), axis=0)
+
+        axs[i, j].plot(out['templates_ts'], mean, label='mean')
+        axs[i, j].plot(out['templates_ts'], median, label='median')
+        axs[i, j].plot(out['templates_ts'], perc5, label='perc5')
+        axs[i, j].plot(out['templates_ts'], perc95, label='perc95')
+        axs[i, j].fill_between(out['templates_ts'], mean.astype(np.float64) + std, mean.astype(np.float64) - std, alpha=0.2)
+
+plt.legend()
 plt.show()
+
+
