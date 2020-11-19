@@ -65,7 +65,7 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     perc95_names = ['P95_' + str(index) for index in range(180)]
     sd_names = ['SD_' + str(index) for index in range(180)]
 
-    typical_signal_names =  mean_names + median_names + perc5_names + perc95_names + sd_names
+    typical_signal_names = mean_names + median_names + perc5_names + perc95_names + sd_names
 
     names += typical_signal_names
 
@@ -84,7 +84,6 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
 
         # R amplitude
         R_amplitudes = ecg_signal[info['ECG_R_Peaks']]
-
 
         # Check if the signal is flipped
         # Check if we have enough peaks to retrieve more information
@@ -111,17 +110,6 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
 
                 if len(R_amplitudes) > 4:
                     _, waves_peak = nk.ecg_delineate(ecg_signal, info, sampling_rate=300, show=False)
-
-
-
-
-
-
-
-
-
-
-
 
         data_temp = []
         if len(R_amplitudes) > 0:
@@ -319,7 +307,7 @@ y_train = pd.read_csv("data/y_train.csv", index_col=0, header=0)
 x_test = pd.read_csv("data/X_test.csv", index_col=0, header=0, low_memory=False,
                      dtype=float, na_values=['', '\n', '\\n'])
 
-#Feature extraction
+# Feature extraction
 x_train_features = create_df(x_train)
 x_train_features.to_csv('data/X_train_features.csv')
 
