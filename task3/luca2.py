@@ -33,11 +33,19 @@ plt.rcParams['figure.figsize'] = [8, 5]  # Bigger images
 
 #Copied from https://neurokit2.readthedocs.io/en/latest/examples/ecg_delineate.html
 
+index = 63
+
 # Retrieve ECG data from data folder (sampling rate= 1000 Hz)
-ecg_signal = x_train.loc[0][:lengths[0]+1]
+ecg_signal = x_train.loc[index][:lengths[index]+1]
+ecg_signal = nk.ecg_clean(ecg_signal, sampling_rate=300)
+
 # Extract R-peaks locations
 _, rpeaks = nk.ecg_peaks(ecg_signal, sampling_rate=300)
 
+R_amplitudes = ecg_signal[rpeaks['ECG_R_Peaks']]
+
+if np.mean(R_amplitudes) < 0:
+    ecg_signal = -ecg_signal
 print(rpeaks)
 
 # Visualize R-peaks in ECG signal
@@ -117,15 +125,69 @@ print(hrv_indices)
 
 # create mean, median, perc5, perc95 and std signal with same length
 
-x_plots = 4
-y_plots = 4
+
+ecg_signal = x_train.loc[index][:lengths[index] + 1]
+ecg_signal = nk.ecg_clean(ecg_signal, sampling_rate=300)
+
+# Find R-peaks
+peaks, info = nk.ecg_peaks(ecg_signal, sampling_rate=300)
+
+# R amplitude
+R_amplitudes = ecg_signal[info['ECG_R_Peaks']]
+
+# Check if we have enough peaks to retrieve more information
+if len(R_amplitudes) > 4:
+
+    _, waves_peak = nk.ecg_delineate(ecg_signal, info, sampling_rate=300, show=False)
+
+    # Q amplitude
+
+    # remove nan values
+    Q_amplitudes = [ecg_signal[peak_index] if str(peak_index) != 'nan' else - np.infty for peak_index in waves_peak['ECG_Q_Peaks']]
+
+    print(R_amplitudes)
+    print(Q_amplitudes)
+
+    print([1 if np.abs(rpeak) > np.abs(Q_amplitudes[index]) else -1 for index, rpeak in enumerate(R_amplitudes)])
+    if np.sum([1 if np.abs(rpeak) > np.abs(Q_amplitudes[index]) else -1 for index, rpeak in enumerate(R_amplitudes)]) < 0:
+        print("flip")
+        ecg_signal = -ecg_signal
+
+out = ecg.ecg(signal=ecg_signal, sampling_rate=300., show=True)
+
+
+x_plots = 2
+y_plots = 2
 # process it and plot
 fig, axs = plt.subplots(x_plots, y_plots)
 
 for i in range(y_plots):
     for j in range(x_plots):
-        out = ecg.ecg(signal=x_train.loc[i * y_plots + j][:lengths[i * y_plots + j] + 1], sampling_rate=300., show=False)
-        print(out['templates'].shape)
+        ecg_signal = x_train.loc[index+i * y_plots + j][:lengths[index+i * y_plots + j] + 1]
+        ecg_signal = nk.ecg_clean(ecg_signal, sampling_rate=300)
+
+        # Check for inverted signal
+        # Find R-peaks
+        peaks, info = nk.ecg_peaks(ecg_signal, sampling_rate=300)
+
+        # R amplitude
+        R_amplitudes = ecg_signal[info['ECG_R_Peaks']]
+
+        # Check if we have enough peaks to retrieve more information
+        if len(R_amplitudes) > 4:
+
+            _, waves_peak = nk.ecg_delineate(ecg_signal, info, sampling_rate=300, show=False)
+
+            # Q amplitude
+
+            Q_amplitudes = [ecg_signal[peak_index] if str(peak_index) != 'nan' else - np.infty for peak_index in
+                            waves_peak['ECG_Q_Peaks']]
+
+            if np.sum([1 if np.abs(rpeak) > np.abs(Q_amplitudes[index]) else -1 for index, rpeak in
+                       enumerate(R_amplitudes)]) < 0:
+                print("flip", index+i * y_plots + j)
+
+                ecg_signal = -ecg_signal
 
         mean = np.mean(out['templates'], axis=0)
         median = np.median(out['templates'], axis=0)

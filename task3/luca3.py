@@ -85,6 +85,44 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
         # R amplitude
         R_amplitudes = ecg_signal[info['ECG_R_Peaks']]
 
+
+        # Check if the signal is flipped
+        # Check if we have enough peaks to retrieve more information
+        if len(R_amplitudes) > 4:
+
+            _, waves_peak = nk.ecg_delineate(ecg_signal, info, sampling_rate=300, show=False)
+
+            # Q amplitude
+
+            # remove nan values
+            Q_amplitudes = [ecg_signal[peak_index] if str(peak_index) != 'nan' else - np.infty for peak_index in
+                            waves_peak['ECG_Q_Peaks']]
+
+            if np.sum([1 if np.abs(rpeak) > np.abs(Q_amplitudes[index]) else -1 for index, rpeak in
+                       enumerate(R_amplitudes)]) < 0:
+                print("flip", row_index)
+
+                ecg_signal = -ecg_signal
+
+                peaks, info = nk.ecg_peaks(ecg_signal, sampling_rate=300)
+
+                # R amplitude
+                R_amplitudes = ecg_signal[info['ECG_R_Peaks']]
+
+                if len(R_amplitudes) > 4:
+                    _, waves_peak = nk.ecg_delineate(ecg_signal, info, sampling_rate=300, show=False)
+
+
+
+
+
+
+
+
+
+
+
+
         data_temp = []
         if len(R_amplitudes) > 0:
             data_temp = [np.mean(R_amplitudes),
@@ -122,7 +160,7 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
             # Delineate the ECG signal
             # “ECG_P_Peaks”, “ECG_Q_Peaks”, “ECG_S_Peaks”, “ECG_T_Peaks”, “ECG_P_Onsets”, “ECG_T_Offsets”
 
-            _, waves_peak = nk.ecg_delineate(ecg_signal, info, sampling_rate=SAMPLING_RATE, show=False)
+            # _, waves_peak = nk.ecg_delineate(ecg_signal, info, sampling_rate=SAMPLING_RATE, show=False)
 
             # Q amplitude
 
