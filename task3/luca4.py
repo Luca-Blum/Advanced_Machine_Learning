@@ -59,7 +59,8 @@ feature_sel = SelectFromModel(RandomForestClassifier())
 estimators = [
     ('mlp1', MLPClassifier(max_iter=1000)),
     ('rfc1', RandomForestClassifier()),
-    ('mlp2', MLPClassifier(max_iter=1000))
+    ('mlp2', MLPClassifier(max_iter=1000)),
+    ('rfc2', RandomForestClassifier())
 ]
 
 # classification
@@ -77,6 +78,8 @@ param_grid = {
 
     'classification__mlp2__alpha': [1],
     'classification__mlp2__activation': ['tanh'],
+
+    'classification__rfc2__n_estimators': [200],
 
     'classification__final_estimator__C': [1],
     'classification__final_estimator__kernel': ['poly']
