@@ -17,6 +17,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
+"""
+EULER
+	module load new gcc/4.8.2 python/3.6.1
+	bsub -n 24 -W 72:00 -N -J "task-3" -oo data/output.txt python3 luca4.py
+"""
+
 x_train = pd.read_csv("data/X_train_features.csv", index_col=0, header=0, low_memory=False)
 y_train = pd.read_csv("data/y_train.csv", index_col=0, header=0)
 x_test = pd.read_csv("data/X_test_features.csv", index_col=0, header=0, low_memory=False)
