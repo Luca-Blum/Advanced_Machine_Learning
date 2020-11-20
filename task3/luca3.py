@@ -1,13 +1,14 @@
 import neurokit2 as nk
 import numpy as np
 import pandas as pd
+import pywt
 from biosppy.signals import ecg
+from sklearn.preprocessing import StandardScaler
 
 SAMPLING_RATE = 300.0
 
 
 def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
-
     # get lengths of signals for each sample
     lengths = []
     width = dataframe.shape[1]
@@ -59,13 +60,26 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
              'HRV_RMSSD', 'HRV_MeanNN', 'HRV_SDNN', 'HRV_SDSD', 'HRV_CVNN', 'HRV_CVSD', 'HRV_MedianNN',
              'HRV_MadNN', 'HRV_MCVNN', 'HRV_IQRNN', 'HRV_pNN50', 'HRV_pNN20', 'HRV_TINN', 'HRV_HTI']
 
-    mean_names = ['MN_' + str(index) for index in range(180)]
-    median_names = ['MD_' + str(index) for index in range(180)]
-    perc5_names = ['P5_' + str(index) for index in range(180)]
-    perc95_names = ['P95_' + str(index) for index in range(180)]
-    sd_names = ['SD_' + str(index) for index in range(180)]
+    template_len = 180
 
-    typical_signal_names = mean_names + median_names + perc5_names + perc95_names + sd_names
+    mean_names = ['MN_' + str(index) for index in range(template_len)]
+    median_names = ['MD_' + str(index) for index in range(template_len)]
+    perc5_names = ['P5_' + str(index) for index in range(template_len)]
+    perc95_names = ['P95_' + str(index) for index in range(template_len)]
+    sd_names = ['SD_' + str(index) for index in range(template_len)]
+
+    wavelet = 'db3'
+
+    wl_len = int(np.floor((template_len + pywt.Wavelet(wavelet).dec_len - 1) / 2))
+
+    wl_mean_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
+    wl_median_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
+    wl_perc5_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
+    wl_perc95_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
+    wl_sd_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
+
+    typical_signal_names = mean_names + median_names + perc5_names + perc95_names + sd_names + wl_mean_names + \
+                           wl_median_names + wl_perc5_names + wl_perc95_names + wl_sd_names
 
     names += typical_signal_names
 
@@ -125,11 +139,11 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
             data_temp += empty.tolist()
 
         # length of signal
-        data_new = [np.mean(lengths[iteration]/SAMPLING_RATE),
-                    np.median(lengths[iteration]/SAMPLING_RATE),
-                    np.percentile(lengths[iteration]/SAMPLING_RATE, q=5),
-                    np.percentile(lengths[iteration]/SAMPLING_RATE, q=95),
-                    np.std(lengths[iteration]/SAMPLING_RATE)]
+        data_new = [np.mean(lengths[iteration] / SAMPLING_RATE),
+                    np.median(lengths[iteration] / SAMPLING_RATE),
+                    np.percentile(lengths[iteration] / SAMPLING_RATE, q=5),
+                    np.percentile(lengths[iteration] / SAMPLING_RATE, q=95),
+                    np.std(lengths[iteration] / SAMPLING_RATE)]
 
         data_temp += data_new
 
@@ -279,6 +293,9 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
 
         # Create a 'typical' heartbeat
 
+        # Scaler = StandardScaler()
+        # ecg_signal = Scaler.fit_transform(X=ecg_signal.reshape(-1, 1)).reshape(1, -1)[0].tolist()
+
         out = ecg.ecg(signal=ecg_signal, sampling_rate=SAMPLING_RATE, show=False)
 
         mean = np.mean(out['templates'], axis=0)
@@ -288,6 +305,25 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
         std = np.std(out['templates'].astype(np.float64), axis=0)
 
         data_new = np.concatenate((mean, median, perc5, perc95, std)).tolist()
+
+        data_temp += data_new
+
+        (wl_mean_cA, wl_mean_cD) = pywt.dwt(np.mean(out['templates'], axis=0),
+                                            'db3', 'periodic')
+        (wl_median_cA, wl_median_cD) = pywt.dwt(np.median(out['templates'], axis=0),
+                                                'db3', 'periodic')
+        (wl_perc5_cA, wl_perc5_cD) = pywt.dwt(np.percentile(out['templates'].astype(np.float64), axis=0, q=5),
+                                              'db3', 'periodic')
+        (wl_perc95_cA, wl_perc95_cD) = pywt.dwt(np.percentile(out['templates'].astype(np.float64), axis=0, q=95),
+                                                'db3', 'periodic')
+        (wl_sd_cA, wl_sd_cD) = pywt.dwt(np.std(out['templates'].astype(np.float64), axis=0),
+                                        'db3', 'periodic')
+
+        data_new = np.concatenate((wl_mean_cA, wl_mean_cD,
+                                   wl_median_cA, wl_median_cD,
+                                   wl_perc5_cA, wl_perc5_cD,
+                                   wl_perc95_cA, wl_perc95_cD,
+                                   wl_sd_cA, wl_sd_cD)).tolist()
 
         data_temp += data_new
 
