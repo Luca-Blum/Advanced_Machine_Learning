@@ -407,14 +407,19 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
             frq = frq[range(int(n/2))] # Get single side of the frequency range
 
             Y = np.fft.fft(f(RR_x_new))/n # Calculate FFT
-            Y = Y[range(int(n/2))]
-            lf = np.trapz(abs(Y[(frq >= 0.04) & (frq <= 0.15)]))
 
-            hf = np.trapz(abs(Y[(frq >= 0.16) & (frq <= 0.5)])) # Do the same for 0.16-0.5Hz (HF)
+            try:
+                Y = Y[range(int(n / 2))]
+                lf = np.trapz(abs(Y[(frq >= 0.04) & (frq <= 0.15)]))
 
-            data_new = [lf, hf, lf/hf]
+                hf = np.trapz(abs(Y[(frq >= 0.16) & (frq <= 0.5)]))  # Do the same for 0.16-0.5Hz (HF)
 
-            data_temp += data_new
+                data_new = [lf, hf, lf / hf]
+
+                data_temp += data_new
+            except IndexError as err:
+                print(err)
+                data_temp += [None, None, None]
 
         # if we don't have enough R peaks return vector of nan's
         else:
