@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pywt
 from biosppy.signals import ecg
+from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
 
 SAMPLING_RATE = 300.0
@@ -37,6 +38,7 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     QRS_diff_*      QRS duration
     len_*           length of signal
     Qual_*          quality of signal measured with nk.ecg_quality
+    sign_*          signal
     
     Also the output from nk.hrv_time which contains different measurements for the heart rate variation (HRV*) was added
     
@@ -51,14 +53,25 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
 
     names = ['R_ampl_mean', 'R_ampl_median', 'R_ampl_perc5', 'R_ampl_perc95', 'R_ampl_sd', 'R_nr_peaks',
              'len_mean', 'len_median', 'len_perc5', 'len_perc95', 'len_sd',
+             'sign_mean', 'sign_median', 'sign_perc5', 'sign_perc95', 'sign_sd',
              'Qual_mean', 'Qual_median', 'Qual_perc5', 'Qual_perc95', 'Qual_sd',
              'Q_ampl_mean', 'Q_ampl_median', 'Q_ampl_perc5', 'Q_ampl_perc95', 'Q_ampl_sd', 'Q_nr_peaks',
              'Q_diff_mean', 'Q_diff_median', 'Q_diff_perc5', 'Q_diff_perc95', 'Q_diff_sd',
              'S_ampl_mean', 'S_ampl_median', 'S_ampl_perc5', 'S_ampl_perc95', 'S_ampl_sd', 'S_nr_peaks',
              'S_diff_mean', 'S_diff_median', 'S_diff_perc5', 'S_diff_perc95', 'S_diff_sd',
+             'P_ampl_mean', 'P_ampl_median', 'P_ampl_perc5', 'P_ampl_perc95', 'P_ampl_sd', 'P_nr_peaks',
+             'T_ampl_mean', 'T_ampl_median', 'T_ampl_perc5', 'T_ampl_perc95', 'T_ampl_sd', 'T_nr_peaks',
              'QRS_diff_mean', 'QRS_diff_median', 'QRS_diff_perc5', 'QRS_diff_perc95', 'QRS_diff_sd',
+             'PR_diff_mean', 'PR_diff_median', 'PR_diff_perc5', 'PR_diff_perc95', 'PR_diff_sd',
+             'RT_diff_mean', 'RT_diff_median', 'RT_diff_perc5', 'RT_diff_perc95', 'RT_diff_sd',
              'HRV_RMSSD', 'HRV_MeanNN', 'HRV_SDNN', 'HRV_SDSD', 'HRV_CVNN', 'HRV_CVSD', 'HRV_MedianNN',
-             'HRV_MadNN', 'HRV_MCVNN', 'HRV_IQRNN', 'HRV_pNN50', 'HRV_pNN20', 'HRV_TINN', 'HRV_HTI']
+             'HRV_MadNN', 'HRV_MCVNN', 'HRV_IQRNN', 'HRV_pNN50', 'HRV_pNN20', 'HRV_TINN', 'HRV_HTI',
+             'HRV_ULF','HRV_VLF','HRV_LF','HRV_HF','HRV_VHF','HRV_LFHF','HRV_LFn','HRV_HFn', 	'HRV_LnHF',
+             'HRV_SD1','HRV_SD2', 'HRV_SD1SD2','HRV_S','HRV_CSI','HRV_CVI','HRV_CSI_Modified', 'HRV_PIP',
+             'HRV_IALS','HRV_PSS','HRV_PAS','HRV_GI','HRV_SI','HRV_AI','HRV_PI','HRV_C1d','HRV_C1a','HRV_SD1d',
+             'HRV_SD1a','HRV_C2d','HRV_C2a','HRV_SD2d','HRV_SD2a','HRV_Cd','HRV_Ca','HRV_SDNNd','HRV_SDNNa','HRV_ApEn',
+             'HRV_SampEn','J_LF','J_HF','J_L/H']
+
 
     template_len = 180
 
@@ -144,6 +157,15 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
                     np.percentile(lengths[iteration] / SAMPLING_RATE, q=5),
                     np.percentile(lengths[iteration] / SAMPLING_RATE, q=95),
                     np.std(lengths[iteration] / SAMPLING_RATE)]
+
+        data_temp += data_new
+
+        # signal
+        data_new = [np.mean(ecg_signal),
+                    np.median(ecg_signal),
+                    np.percentile(ecg_signal, q=5),
+                    np.percentile(ecg_signal, q=95),
+                    np.std(ecg_signal)]
 
         data_temp += data_new
 
@@ -251,6 +273,47 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
                 empty[:] = np.NaN
                 data_temp += empty.tolist()
 
+            P_peaks = [peak for peak in waves_peak['ECG_P_Peaks'] if str(peak) != 'nan']
+
+            if len(P_peaks) > 0:
+                P_amplitudes = ecg_signal[P_peaks]
+
+                data_new = [np.mean(P_amplitudes),
+                            np.median(P_amplitudes),
+                            np.percentile(P_amplitudes, q=5),
+                            np.percentile(P_amplitudes, q=95),
+                            np.std(P_amplitudes),
+                            len(P_amplitudes)]
+
+                data_temp += data_new
+
+            else:
+                empty = np.empty([6])
+                empty[:] = np.NaN
+                empty[5] = 0
+                data_temp += empty.tolist()
+
+            T_peaks = [peak for peak in waves_peak['ECG_T_Peaks'] if str(peak) != 'nan']
+
+            if len(T_peaks) > 0:
+                T_peaks = ecg_signal[T_peaks]
+
+                data_new = [np.mean(T_peaks),
+                            np.median(T_peaks),
+                            np.percentile(T_peaks, q=5),
+                            np.percentile(T_peaks, q=95),
+                            np.std(T_peaks),
+                            len(T_peaks)]
+
+                data_temp += data_new
+
+            else:
+                empty = np.empty([6])
+                empty[:] = np.NaN
+                empty[5] = 0
+                data_temp += empty.tolist()
+
+
             # QRS interval
 
             QRS_peaks_diff = []
@@ -275,21 +338,89 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
                 empty[:] = np.NaN
                 data_temp += empty.tolist()
 
+            # PR interval
+
+            PR_peaks_diff = []
+
+            # compute difference between P and R peak
+            for index in range(len(waves_peak['ECG_P_Peaks'])):
+                if not np.isnan(waves_peak['ECG_P_Peaks'][index]):
+                    PR_peaks_diff.append(
+                        (info['ECG_R_Peaks'][index] - waves_peak['ECG_P_Peaks'][index]) / SAMPLING_RATE)
+
+            if len(PR_peaks_diff) > 0:
+                data_new = [np.mean(PR_peaks_diff),
+                            np.median(PR_peaks_diff),
+                            np.percentile(PR_peaks_diff, q=5),
+                            np.percentile(PR_peaks_diff, q=95),
+                            np.std(PR_peaks_diff)]
+
+                data_temp += data_new
+            else:
+                empty = np.empty([5])
+                empty[:] = np.NaN
+                data_temp += empty.tolist()
+
+            # RT interval
+
+            RT_peaks_diff = []
+
+            # compute difference between P and R peak
+            for index in range(len(waves_peak['ECG_T_Peaks'])):
+                if not np.isnan(waves_peak['ECG_T_Peaks'][index]):
+                    RT_peaks_diff.append(
+                        (waves_peak['ECG_T_Peaks'][index] - info['ECG_R_Peaks'][index]) / SAMPLING_RATE)
+
+            if len(RT_peaks_diff) > 0:
+                data_new = [np.mean(RT_peaks_diff),
+                            np.median(PR_peaks_diff),
+                            np.percentile(RT_peaks_diff, q=5),
+                            np.percentile(RT_peaks_diff, q=95),
+                            np.std(RT_peaks_diff)]
+
+                data_temp += data_new
+
+            else:
+                empty = np.empty([5])
+                empty[:] = np.NaN
+                data_temp += empty.tolist()
+
+            # Extract clean EDA and SCR features
+            # explanation of features:
+            # https://neurokit2.readthedocs.io/en/latest/functions.html?highlight=hrv%20time#neurokit2.hrv.hrv_time
+
+            hrv_time = nk.hrv(peaks, sampling_rate=SAMPLING_RATE, show=False)
+
+            data_new = hrv_time.values.tolist()[0]
+
+            data_temp += data_new
+
+            # Jannik
+            # http://www.paulvangent.com/2016/03/21/analyzing-a-discrete-heart-rate-signal-using-python-part-2/
+            rpeaks = info['ECG_R_Peaks']
+            r_interval = [rpeaks[index+1]-rpeaks[index] for index in range(len(rpeaks)-1)]
+            RR_x_new = np.linspace(rpeaks[0],rpeaks[-2],rpeaks[-2])
+            f = interp1d(rpeaks[:-1], r_interval, kind='cubic')
+
+            n = lengths[iteration] + 1 # Length of the signal
+            frq = np.fft.fftfreq(n, d=(1 / SAMPLING_RATE)) # divide the bins into frequency categories
+            frq = frq[range(int(n/2))] # Get single side of the frequency range
+
+            Y = np.fft.fft(f(RR_x_new))/n # Calculate FFT
+            Y = Y[range(int(n/2))]
+            lf = np.trapz(abs(Y[(frq >= 0.04) & (frq <= 0.15)]))
+
+            hf = np.trapz(abs(Y[(frq >= 0.16) & (frq <= 0.5)])) # Do the same for 0.16-0.5Hz (HF)
+
+            data_new = [lf, hf, lf/hf]
+
+            data_temp += data_new
+
         # if we don't have enough R peaks return vector of nan's
         else:
-            empty = np.empty([len(names) - 25 - len(typical_signal_names)])
+            empty = np.empty([len(names) - 16 - len(typical_signal_names)])
             empty[:] = np.NaN
             data_temp += empty.tolist()
-
-        # Extract clean EDA and SCR features
-        # explanation of features:
-        # https://neurokit2.readthedocs.io/en/latest/functions.html?highlight=hrv%20time#neurokit2.hrv.hrv_time
-
-        hrv_time = nk.hrv_time(peaks, sampling_rate=SAMPLING_RATE, show=False)
-
-        data_new = hrv_time.values.tolist()[0]
-
-        data_temp += data_new
 
         # Create a 'typical' heartbeat
 
