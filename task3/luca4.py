@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pywt
 from imblearn.pipeline import Pipeline
 from sklearn.decomposition import KernelPCA, PCA
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
@@ -23,9 +24,28 @@ EULER
 	bsub -n 24 -W 72:00 -N -J "task-3" -oo data/output.txt python3 luca4.py
 """
 
-x_train = pd.read_csv("data/X_train_features.csv", index_col=0, header=0, low_memory=False)
+data_folder = "data4"
+
+x_train = pd.read_csv(data_folder + "/X_train_features.csv", index_col=0, header=0, low_memory=False)
 y_train = pd.read_csv("data/y_train.csv", index_col=0, header=0)
-x_test = pd.read_csv("data/X_test_features.csv", index_col=0, header=0, low_memory=False)
+x_test = pd.read_csv(data_folder + "/X_test_features.csv", index_col=0, header=0, low_memory=False)
+
+x_train.replace([np.inf, -np.inf], np.nan, inplace=True)
+x_test.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+data_fuse = "data2"
+
+x_train_fuse = pd.read_csv(data_fuse + "/X_train_features.csv", index_col=0, header=0, low_memory=False)
+x_test_fuse = pd.read_csv(data_fuse + "/X_test_features.csv", index_col=0, header=0, low_memory=False)
+
+x_train[x_train_fuse.columns[-202:]] = x_train_fuse[x_train_fuse.columns[-202:]]
+x_test[x_test_fuse.columns[-202:]] = x_test_fuse[x_train_fuse.columns[-202:]]
+
+print(x_train.shape)
+print(x_test.shape)
+
+print(x_train.head())
+print(x_test.head())
 
 """
 Open/create a file to store the progress of GridSearchCV
@@ -34,13 +54,13 @@ The version number ensures that the results get stored in a new file
 """
 
 version = 0
-with open('data/version.txt', 'a+') as f:
+with open(data_folder + '/version.txt', 'a+') as f:
     f.seek(0)
     read = f.readline().strip()
     if read != '':
         version = int(read) + 1
 
-with open('data/version.txt', 'w') as f:
+with open(data_folder + 'version.txt', 'w') as f:
     print(version, file=f)
 
 
@@ -75,25 +95,26 @@ model = StackingClassifier(estimators=estimators, final_estimator=SVC())
 
 # Parameter space for CV
 
+
 param_grid = {
     'imputer__strategy': ['median'],
 
-    'classification__mlp1__alpha': [1],
+    'classification__mlp1__alpha': [10],
 
-    'classification__rfc1__n_estimators': [150],
+    'classification__rfc1__n_estimators': [200],
 
     'classification__mlp2__alpha': [1],
     'classification__mlp2__activation': ['tanh'],
 
     'classification__rfc2__n_estimators': [200],
 
-    'classification__final_estimator__C': [1],
+    'classification__final_estimator__C': [10],
     'classification__final_estimator__kernel': ['poly']
 }
 
 # model to train
-steps = [('selector', selector),
-         ('imputer', imputer),
+steps = [('imputer', imputer),
+         ('selector', selector),
          ('scaler', scaler),
          ('feature', feature_sel),
          ('classification', model)]
@@ -129,4 +150,4 @@ y_pred = search.predict(x_test)
 
 # store predictions to disk
 df = pd.DataFrame(y_pred)
-df.to_csv('data/y_pred' + str(version) + '.csv', header=['y'], index_label='id')
+df.to_csv(data_folder + '/y_pred' + str(version) + '.csv', header=['y'], index_label='id')

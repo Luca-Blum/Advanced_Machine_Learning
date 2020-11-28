@@ -86,10 +86,10 @@ def create_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     wl_len = int(np.floor((template_len + pywt.Wavelet(wavelet).dec_len - 1) / 2))
 
     wl_mean_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
-    wl_median_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
-    wl_perc5_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
-    wl_perc95_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
-    wl_sd_names = ['WLMN_' + str(index) for index in range(2*wl_len)]
+    wl_median_names = ['WLMD_' + str(index) for index in range(2*wl_len)]
+    wl_perc5_names = ['WLP5_' + str(index) for index in range(2*wl_len)]
+    wl_perc95_names = ['WLP95_' + str(index) for index in range(2*wl_len)]
+    wl_sd_names = ['WLSD_' + str(index) for index in range(2*wl_len)]
 
     typical_signal_names = mean_names + median_names + perc5_names + perc95_names + sd_names + wl_mean_names + \
                            wl_median_names + wl_perc5_names + wl_perc95_names + wl_sd_names
@@ -481,7 +481,7 @@ x_test = pd.read_csv("data/X_test.csv", index_col=0, header=0, low_memory=False,
 
 # Feature extraction
 x_train_features = create_df(x_train)
-x_train_features.to_csv('data/X_train_features.csv')
+x_train_features.to_csv('data4/X_train_features.csv')
 
 x_test_features = create_df(x_test)
-x_test_features.to_csv('data/X_test_features.csv')
+x_test_features.to_csv('data4/X_test_features.csv')
