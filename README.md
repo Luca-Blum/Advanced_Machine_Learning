@@ -19,8 +19,9 @@ This task has problems concerning:
 - **Sensitive score** &rightarrow; [Stratified KFold](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html)
 
 We managed to solve these problems exceptionally well, such that placed third on that homework. &#129395;
-## Task 3
-TODO: Description of task 1 and strategies used to solve the problem
-
+## [Task 3](https://github.com/lblum95/AML/blob/master/task3/README.md)
+This task has problems concerning:
+- **Time series** &rightarrow; [Transform to frequency domain with HRV](https://neurokit2.readthedocs.io/en/latest/examples/hrv.html#Compute-HRV-features)
+- **Different lengths of samples** &rightarrow; Take aggregates e.g. mean, 5th/95th percentage
+- **Challenging classification** &rightarrow; [HistGradientClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html)
 ## Task 4
-TODO: Description of task 1 and strategies used to solve the problem
