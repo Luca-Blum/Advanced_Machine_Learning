@@ -18,7 +18,7 @@ This task has problems concerning:
 - **Imbalanced data** &rightarrow; [SMOTE](https://imbalanced-learn.readthedocs.io/en/stable/generated/imblearn.over_sampling.SMOTE.html)
 - **Sensitive score** &rightarrow; [Stratified KFold](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html)
 
-We managed to solve these problems exceptionally well, such that placed third on that homework. &#129395;
+We managed to solve these problems exceptionally well, such that we placed third on that homework. &#129395;
 ## [Task 3](https://github.com/lblum95/AML/blob/master/task3/README.md)
 This task has problems concerning:
 - **Time series** &rightarrow; [Transform to frequency domain with HRV](https://neurokit2.readthedocs.io/en/latest/examples/hrv.html#Compute-HRV-features)
