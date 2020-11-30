@@ -11,8 +11,8 @@ F1 = f1_score(y_true, y_pred, average='micro')
 ``
 ## Final scripts
 - Feature engineering
-	- [FeatureEngineering.py]() &rightarrow; "X_train_features.csv"
-	- [Yanick.ipynb]() &rightarrow; "X_train_features_yanick.csv"
+	- [FeatureEngineering.py](https://github.com/lblum95/AML/blob/master/task3/FeatureEngineering.py) &rightarrow; "X_train_features.csv"
+	- [Yanick.ipynb](https://github.com/lblum95/AML/blob/master/task3/Yanick.ipynb) &rightarrow; "X_train_features_yanick.csv"
 - Classifier
 ## Takeaways
 - When aggregating data it is important to take many statistical measures, not just the mean
@@ -30,8 +30,8 @@ The model that we then used started with a [SimpleImputer(mean='median')](https:
 
 
 Other methods tested were:
-- [1DCNN classifier]() on the segment
-- [Deep Neural Net classifier]()
+- [1DCNN classifier](https://github.com/lblum95/AML/blob/master/task3/1DCNNClassifier.ipynb) on the segment
+- [Deep Neural Net classifier](https://github.com/lblum95/AML/blob/master/task3/NeuralNetClassifier.ipynb)
 - [StackingClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.StackingClassifier.html) instead of Voting
 - Adding a [OneVsOne](https://scikit-learn.org/stable/modules/generated/sklearn.multiclass.OneVsOneClassifier.html#sklearn.multiclass.OneVsOneClassifier)/[OneVsRest](https://scikit-learn.org/stable/modules/generated/sklearn.multiclass.OneVsRestClassifier.html#sklearn.multiclass.OneVsRestClassifier) wrapper around the classifier
 - Testing without the sample segment
