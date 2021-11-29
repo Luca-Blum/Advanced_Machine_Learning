@@ -8,7 +8,7 @@ While the previous projects dealt with medical image features, we turn now to th
 ```
 from sklearn.metrics import f1_score
 F1 = f1_score(y_true, y_pred, average='micro')
-``
+```
 ## Final scripts
 - Feature engineering
 	- [FeatureEngineering.py](https://github.com/lblum95/AML/blob/master/task3/FeatureEngineering.py) &rightarrow; "X_train_features.csv"
